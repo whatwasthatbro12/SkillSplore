@@ -6,6 +6,7 @@ import { useToast } from '../../lib/toast.js';
 import type { Money } from '../../lib/types.js';
 import { Alert, Badge, Button, Card, Field, Input, Select, Spinner, StatusBadge, Textarea } from '../../components/ui.js';
 import { SuggestSubjectModal } from '../../components/SuggestSubjectModal.js';
+import { CREDENTIALS_SELF_DECLARED } from '../../lib/trustCopy.js';
 import { slotLabel } from '../../lib/format.js';
 
 interface OwnProfile {
@@ -388,12 +389,16 @@ function QualificationsStep({ profile, onSaved }: { profile: OwnProfile; onSaved
 
   return (
     <Card><div className="card-body">
-      <h3 className="mt-0">Qualifications</h3>
-      <p className="muted">Uploaded documents are private — only you and administrators can view them.</p>
+      <h3 className="mt-0">Your qualifications</h3>
+      <p className="muted">{CREDENTIALS_SELF_DECLARED}</p>
+      <p className="hint" style={{ marginTop: 0 }}>
+        Uploaded documents stay private — only you and administrators can open them. Learners see
+        the title, institution and year, shown as your own statement.
+      </p>
       <ul className="list-reset stack-sm">
         {profile.qualifications.map((q) => (
           <li key={q.id} className="spread">
-            <span>{q.title} <span className="muted">{[q.institution, q.year].filter(Boolean).join(', ')}</span> {q.hasDocument && <Badge>📎 {q.documentName}</Badge>} {q.verified && <Badge variant="success">Verified</Badge>}</span>
+            <span>{q.title} <span className="muted">{[q.institution, q.year].filter(Boolean).join(', ')}</span> {q.hasDocument && <Badge>📎 {q.documentName}</Badge>} {q.verified && <Badge variant="success">Document checked</Badge>}</span>
             <Button className="btn-sm" onClick={() => remove(q.id)}>Remove</Button>
           </li>
         ))}

@@ -8,6 +8,7 @@ import type { Money, PublicUser, Verification } from '../lib/types.js';
 import { Avatar, Badge, Button, Card, EmptyState, Field, Modal, Spinner, Stars, Textarea } from '../components/ui.js';
 import { deliveryLabel, money, slotLabel, dateStr } from '../lib/format.js';
 import { PAYMENT_DISCLAIMER } from '../lib/pricingCopy.js';
+import { DUE_DILIGENCE_NOTICE, QUALIFICATIONS_UNCHECKED } from '../lib/trustCopy.js';
 import { VerifyEmailNotice } from '../components/VerifyEmailNotice.js';
 import { ReportButton } from '../components/ReportButton.js';
 
@@ -114,12 +115,19 @@ export function TutorProfile() {
 
         {p.qualifications.length > 0 && (
           <Card><div className="card-body">
-            <h3 className="mt-0">Qualifications</h3>
+            {/* Headed "stated by" rather than "Qualifications" on purpose. The
+                heading is the claim: a bare "Qualifications" heading on a
+                platform reads as though the platform stands behind the list,
+                and SkillSplore does not check any of it. */}
+            <h3 className="mt-0">Qualifications stated by {p.displayName}</h3>
+            <p className="hint" style={{ marginTop: 0 }}>{QUALIFICATIONS_UNCHECKED}</p>
             <ul className="list-reset stack-sm">
               {p.qualifications.map((q) => (
                 <li key={q.id} className="row-wrap">
                   <strong>{q.title}</strong>
                   <span className="muted">{[q.institution, q.year].filter(Boolean).join(', ')}</span>
+                  {/* Only ever appears if someone actually checked the
+                      document. Absence means "not checked", never "failed". */}
                   {q.verified && <Badge variant="success">Document checked</Badge>}
                 </li>
               ))}
@@ -156,12 +164,24 @@ export function TutorProfile() {
           <Button variant="primary" className="btn-block" onClick={() => (user ? setContactOpen(true) : requireLogin())}>Contact</Button>
           <Button className="btn-block" onClick={toggleSave}>{p.isSaved ? '★ Saved' : '☆ Save profile'}</Button>
           <div className="alert alert-info" style={{ fontSize: '0.8rem', margin: 0 }}>Learning is arranged and paid directly between you and this person. {PAYMENT_DISCLAIMER}</div>
+          {/* Sits directly under Contact, where the decision is actually made.
+              The same words in the Terms would be true and useless -- nobody
+              reads them at the moment they matter. */}
+          <div className="alert alert-warning" style={{ fontSize: '0.8rem', margin: 0 }}>{DUE_DILIGENCE_NOTICE}</div>
         </div></Card>
 
         <Card><div className="card-body">
-          <h3 className="mt-0">Trust</h3>
+          {/* "About this account", not "Trust". These are counts of things
+              that happened on the platform -- facts we can actually stand
+              behind -- not a judgement about whether this person is
+              trustworthy, which we are in no position to make. */}
+          <h3 className="mt-0">About this account</h3>
           <ul className="list-reset stack-sm" style={{ fontSize: '0.9rem' }}>
-            <li className="spread"><span className="muted">Verified qualifications</span><strong>{p.trustIndicators.verifiedQualifications}</strong></li>
+            {/* "Verified qualifications" used to sit here as a count. Since
+                nobody verifies documents, it read 0 on every profile -- which
+                looks like a finding against the tutor rather than what it
+                actually was: a statement about what SkillSplore does not do.
+                Removed rather than left showing a permanent zero. */}
             <li className="spread"><span className="muted">Completed engagements</span><strong>{p.trustIndicators.completedEngagements}</strong></li>
             <li className="spread"><span className="muted">Reviews</span><strong>{p.trustIndicators.reviewCount}</strong></li>
             <li className="spread"><span className="muted">Member since</span><strong>{dateStr(p.trustIndicators.memberSince)}</strong></li>
