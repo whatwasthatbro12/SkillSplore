@@ -11,7 +11,7 @@ export const COMMUNITY_GUIDELINES = `
 
 **Status: draft for legal review. Not yet in force.**
 
-Last updated: [[LAST_UPDATED_DATE]]
+Last updated: 11 August 2026
 
 SkillSplore works because people are straight with each other. These guidelines
 apply to profiles, requests, responses, messages, reviews and every other part
@@ -107,7 +107,7 @@ export const SAFETY_POLICY = `
 
 **Status: draft for legal review. Not yet in force.**
 
-Last updated: [[LAST_UPDATED_DATE]]
+Last updated: 11 August 2026
 
 This policy gives practical guidance. Following it reduces risk. **It does not
 eliminate risk, and SkillSplore does not guarantee anyone's safety.** You are
@@ -190,7 +190,7 @@ export const PROHIBITED_SERVICES_POLICY = `
 
 **Status: draft for legal review. Not yet in force.**
 
-Last updated: [[LAST_UPDATED_DATE]]
+Last updated: 11 August 2026
 
 ## Part A — Prohibited outright
 
@@ -288,7 +288,7 @@ export const COOKIE_NOTICE = `
 
 **Status: draft for legal review. Not yet in force.**
 
-Last updated: [[LAST_UPDATED_DATE]]
+Last updated: 11 August 2026
 
 This notice lists the cookies and similar technologies SkillSplore actually
 uses. It is generated against the real configuration. If a category is empty
@@ -343,7 +343,7 @@ export const SUBPROCESSOR_NOTICE = `
 
 **Status: draft for legal review. Not yet in force.**
 
-Last updated: [[LAST_UPDATED_DATE]]
+Last updated: 11 August 2026
 
 A subprocessor is a third party that processes personal information on our
 behalf. This page lists the ones actually in use.

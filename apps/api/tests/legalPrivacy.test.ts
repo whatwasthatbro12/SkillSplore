@@ -90,11 +90,17 @@ describe('legal document placeholders', () => {
     expect(() => assertPublishable('Governed by the laws of New Zealand.')).not.toThrow();
   });
 
-  it('ships every draft with placeholders, so none can be published untouched', () => {
+  it('ships no document with an unfilled placeholder', () => {
+    // This assertion is the inverse of what it used to be. The drafts
+    // deliberately shipped incomplete, as a tripwire forcing someone to fill
+    // the blanks before launch. That job is done: the site is live, and
+    // "Effective date: [[EFFECTIVE_DATE]]" was being served to readers and
+    // indexed by search engines. Publishing is now gated at publishVersion
+    // instead, which is the check that actually protects a reader.
     for (const doc of LEGAL_DOCUMENTS) {
       const scan = scanPlaceholders(doc.body);
-      expect(scan.unresolved.length, `${doc.slug} should still contain placeholders`).toBeGreaterThan(0);
-      // Every placeholder used must be a known one -- catches typos in drafts.
+      expect(scan.unresolved, `${doc.slug} still has an unfilled placeholder`).toEqual([]);
+      // Every placeholder token used must be a known one -- catches typos.
       expect(scan.unknown, `${doc.slug} has unknown placeholder tokens`).toEqual([]);
     }
   });
@@ -120,7 +126,6 @@ describe('legal document sync and versioning', () => {
       expect(doc.currentVersionId, `${doc.slug} must not auto-publish`).toBeNull();
       expect(doc.versions).toHaveLength(1);
       expect(doc.versions[0]!.legalReviewedAt).toBeNull();
-      expect(doc.versions[0]!.unresolvedPlaceholders.length).toBeGreaterThan(0);
     }
   });
 
@@ -135,6 +140,14 @@ describe('legal document sync and versioning', () => {
   it('refuses to publish a version that still has placeholders', async () => {
     await syncLegalDocuments(prisma);
     const version = await prisma.legalDocumentVersion.findFirstOrThrow();
+    // Placeholder injected here rather than relying on the shipped drafts
+    // containing one. The shipped documents are now complete, and this test is
+    // about the gate, not about the state of the current policy text -- it
+    // should keep protecting readers no matter what the drafts happen to say.
+    await prisma.legalDocumentVersion.update({
+      where: { id: version.id },
+      data: { body: 'Effective date: [[EFFECTIVE_DATE]]' },
+    });
     await expect(publishVersion(prisma, version.id)).rejects.toThrow(/cannot be marked production ready/);
   });
 
@@ -459,11 +472,14 @@ describe('public policy documents', () => {
     }
   });
 
-  it('marks unpublished documents as drafts with placeholders', async () => {
+  it('marks an unpublished document as a draft', async () => {
     const res = await anon().get('/api/legal/documents/privacy');
+    // Unpublished and unreviewed still show the draft banner. The placeholder
+    // count is no longer part of it: the text is complete, and what makes it a
+    // draft now is that nobody has brought it into force.
     expect(res.body.isPublished).toBe(false);
     expect(res.body.isLegallyReviewed).toBe(false);
-    expect(res.body.unresolvedPlaceholders.length).toBeGreaterThan(0);
+    expect(res.body.unresolvedPlaceholders).toEqual([]);
   });
 
   it('rejects an unknown document path', async () => {

@@ -10,6 +10,7 @@ const LINKS: Array<[string, string]> = [
   ['/admin/taxonomy', 'Taxonomy'],
   ['/admin/subject-suggestions', 'Suggestions'],
   ['/admin/feedback', 'Feedback'],
+  ['/admin/legal', 'Legal'],
   ['/admin/privacy-requests', 'Privacy'],
   ['/admin/audit', 'Audit log'],
 ];

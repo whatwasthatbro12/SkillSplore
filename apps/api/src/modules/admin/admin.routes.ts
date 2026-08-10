@@ -12,6 +12,9 @@ import { money } from '../../lib/serializers.js';
 import { normalizeName } from '../../lib/normalize.js';
 import { DEFAULT_VERIFICATION_LABELS } from '../../lib/verification.js';
 import { hideContent, loadReportContext } from './admin.moderation.js';
+import { publishVersion } from '../../lib/legalSync.js';
+import { LegalDocumentNotPublishableError } from '../../lib/legalPlaceholders.js';
+import { LEGAL_DOCUMENTS } from '../../content/legal/index.js';
 import { recomputeTutorRating } from '../reviews/reviews.service.js';
 import { fullProfileInclude } from '../tutors/tutors.service.js';
 
@@ -689,5 +692,117 @@ adminRouter.post(
     const id = Number(req.params.id);
     await resolveSuggestion(id, req.user!.id, { status: 'REJECTED', reviewNote: req.body.reviewNote });
     res.json({ ok: true });
+  }),
+);
+
+/**
+ * Legal documents: inspect every version, and publish one.
+ *
+ * `publishVersion` existed in legalSync.ts from the start but was reachable
+ * only from a shell with DATABASE_URL -- which Render's free tier does not
+ * provide. The practical effect was that no policy could ever be published:
+ * skillsplore.org served its Privacy Policy and Terms with a permanent
+ * "Draft — not yet in force" banner, and with [[EFFECTIVE_DATE]] visible to
+ * readers and to crawlers.
+ *
+ * Exposed to administrators rather than triggered by an env var, unlike the
+ * demo cleanup: bringing a policy into force is a considered legal act that
+ * should be chosen by a person looking at the text, and it is worth an audit
+ * record naming who did it.
+ */
+adminRouter.get(
+  '/legal',
+  asyncHandler(async (_req, res) => {
+    const docs = await prisma.legalDocument.findMany({
+      include: {
+        currentVersion: { select: { id: true, version: true } },
+        versions: {
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            version: true,
+            publishedAt: true,
+            effectiveAt: true,
+            legalReviewedAt: true,
+            legalReviewedBy: true,
+            unresolvedPlaceholders: true,
+            createdAt: true,
+          },
+        },
+      },
+      orderBy: { slug: 'asc' },
+    });
+
+    // The public URL lives in the source registry, not on the row.
+    const pathBySlug = new Map(LEGAL_DOCUMENTS.map((d) => [d.slug, d.path]));
+
+    res.json({
+      documents: docs.map((d) => ({
+        id: d.id,
+        slug: d.slug,
+        title: d.title,
+        path: pathBySlug.get(d.slug) ?? null,
+        // A row whose slug is no longer in the source registry -- a policy
+        // that was retired. Kept in the database because acceptances point at
+        // its versions, but it has no public page and must not be offered for
+        // publication.
+        retired: !pathBySlug.has(d.slug),
+        currentVersionId: d.currentVersionId,
+        versions: d.versions.map((v) => ({
+          ...v,
+          isCurrent: v.id === d.currentVersionId,
+          // Surfaced so an administrator can see WHY a version refuses to
+          // publish, rather than only being told that it did.
+          blockedBy: v.unresolvedPlaceholders,
+        })),
+      })),
+    });
+  }),
+);
+
+adminRouter.post(
+  '/legal/versions/:id/publish',
+  validate({
+    body: z.object({
+      // Lets a policy be dated from when notice was actually given, rather
+      // than forcing "in force the instant someone clicked publish".
+      effectiveAt: z.string().datetime().optional(),
+    }),
+  }),
+  asyncHandler(async (req, res) => {
+    const id = Number(req.params.id);
+    const version = await prisma.legalDocumentVersion.findUnique({
+      where: { id },
+      include: { document: { select: { slug: true, title: true } } },
+    });
+    if (!version) throw notFound('That document version does not exist.');
+
+    try {
+      await publishVersion(prisma, id, {
+        effectiveAt: req.body.effectiveAt ? new Date(req.body.effectiveAt) : undefined,
+      });
+    } catch (err) {
+      if (err instanceof LegalDocumentNotPublishableError) {
+        // The placeholder gate is the one thing standing between a
+        // fill-in-the-blank draft and a live policy page, so the refusal is
+        // reported as a normal validation failure naming what is missing --
+        // not as a 500.
+        throw badRequest(
+          `"${version.document.title}" still has details to fill in, so it cannot be published yet.`,
+          { placeholders: err.unresolved },
+        );
+      }
+      throw err;
+    }
+
+    await writeAudit({
+      actorId: req.user!.id,
+      action: 'legal.published',
+      entityType: 'LegalDocumentVersion',
+      entityId: id,
+      metadata: { slug: version.document.slug, version: version.version },
+    });
+
+    res.json({ ok: true, slug: version.document.slug, version: version.version });
   }),
 );

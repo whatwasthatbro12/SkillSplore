@@ -399,6 +399,9 @@ export async function renderShell(
     <meta property="og:site_name" content="${SITE_NAME}" />
     <meta name="twitter:card" content="summary" />
     ${content.indexable === false ? '<meta name="robots" content="noindex,follow" />' : ''}
+    ${env.GOOGLE_SITE_VERIFICATION
+      ? `<meta name="google-site-verification" content="${esc(env.GOOGLE_SITE_VERIFICATION)}" />`
+      : ''}
     <script type="application/ld+json">${organisationJsonLd()}</script>
     ${content.jsonLd ? `<script type="application/ld+json">${JSON.stringify(content.jsonLd)}</script>` : ''}
   `.trim();

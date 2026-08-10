@@ -22,6 +22,12 @@ const schema = z.object({
   // shell. Separate from WEB_ORIGIN, which is the CORS origin -- they are the
   // same in most deployments but not necessarily.
   PUBLIC_SITE_URL: z.string().default(''),
+  // Google Search Console ownership token, the `content` value from the
+  // "HTML tag" verification method. Set as an env var rather than a file in
+  // apps/web/public because Render's free tier has no persistent disk -- an
+  // uploaded verification file disappears on the next redeploy and the
+  // property silently loses its verified status.
+  GOOGLE_SITE_VERIFICATION: z.string().default(''),
 
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
 

@@ -34,6 +34,7 @@ import { AdminRequests } from './pages/admin/AdminRequests.js';
 import { AdminTaxonomy } from './pages/admin/AdminTaxonomy.js';
 import { AdminSubjectSuggestions } from './pages/admin/AdminSubjectSuggestions.js';
 import { AdminFeedback } from './pages/admin/AdminFeedback.js';
+import { AdminLegal } from './pages/admin/AdminLegal.js';
 import { AdminPrivacyRequests } from './pages/admin/AdminPrivacyRequests.js';
 import { AdminAudit } from './pages/admin/AdminAudit.js';
 import { PolicyPage } from './pages/legal/PolicyPage.js';
@@ -111,6 +112,7 @@ export function App() {
           <Route path="/admin/taxonomy" element={<RequireAuth role="ADMIN"><AdminTaxonomy /></RequireAuth>} />
           <Route path="/admin/subject-suggestions" element={<RequireAuth role="ADMIN"><AdminSubjectSuggestions /></RequireAuth>} />
           <Route path="/admin/feedback" element={<RequireAuth role="ADMIN"><AdminFeedback /></RequireAuth>} />
+          <Route path="/admin/legal" element={<RequireAuth role="ADMIN"><AdminLegal /></RequireAuth>} />
           <Route path="/admin/privacy-requests" element={<RequireAuth role="ADMIN"><AdminPrivacyRequests /></RequireAuth>} />
           <Route path="/admin/audit" element={<RequireAuth role="ADMIN"><AdminAudit /></RequireAuth>} />
 

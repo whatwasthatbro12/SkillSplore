@@ -83,6 +83,13 @@ services:
       # where a person chooses it -- not in a file where a redeploy performs
       # it. Set REMOVE_DEMO_DATA=1 there when ready; it is safe to leave set
       # afterwards, and safe to remove.
+      # Google Search Console ownership token. Left blank here and set in the
+      # dashboard, because it is account-specific rather than part of the
+      # deployment's shape. An env var rather than a file in apps/web/public:
+      # the free tier has no persistent disk, so an uploaded verification file
+      # vanishes on redeploy and the property quietly becomes unverified.
+      - key: GOOGLE_SITE_VERIFICATION
+        sync: false
       - key: FORCE_SECURE_COOKIES
         value: 1
       - key: STORAGE_DRIVER

@@ -11,14 +11,13 @@ export const TERMS_OF_USE = `
 
 **Status: draft for legal review. Not yet in force.**
 
-Effective date: [[EFFECTIVE_DATE]]
-Last updated: [[LAST_UPDATED_DATE]]
+Effective date: 11 August 2026
+Last updated: 11 August 2026
 
 ## 1. Agreement and acceptance
 
 These Terms are between you and **SkillSplore Limited** (trading as
-SkillSplore), a New Zealand registered company, company number **9449842**,
-New Zealand Business Number [[BUSINESS_IDENTIFIER]].
+SkillSplore), a New Zealand registered company, company number **9449842**.
 
 Our registered office address is recorded on the New Zealand Companies Register and can be looked up by company number.
 

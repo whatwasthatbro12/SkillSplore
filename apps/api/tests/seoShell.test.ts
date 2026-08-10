@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
+import { env } from '../src/config/env.js';
 import { prisma } from './helpers.js';
 import { renderShell } from '../src/lib/seoShell.js';
 
@@ -181,5 +182,37 @@ describe('crawler shell: dynamic routes', () => {
   it('indexes a bare /search', async () => {
     const { html } = await renderShell(prisma, '/search', SHELL);
     expect(html).not.toContain('noindex');
+  });
+});
+
+describe('search engine verification', () => {
+  it('omits the verification tag when no token is configured', async () => {
+    const { html } = await renderShell(prisma, '/', SHELL);
+    expect(html).not.toContain('google-site-verification');
+  });
+
+  it('emits the verification tag when a token is set', async () => {
+    // Set on the frozen env object the shell reads, then restored -- the whole
+    // point of the env-var approach is that the token survives a redeploy,
+    // which a file in apps/web/public would not on a host with no disk.
+    const original = env.GOOGLE_SITE_VERIFICATION;
+    (env as { GOOGLE_SITE_VERIFICATION: string }).GOOGLE_SITE_VERIFICATION = 'test-token-abc123';
+    try {
+      const { html } = await renderShell(prisma, '/', SHELL);
+      expect(html).toContain('<meta name="google-site-verification" content="test-token-abc123" />');
+    } finally {
+      (env as { GOOGLE_SITE_VERIFICATION: string }).GOOGLE_SITE_VERIFICATION = original;
+    }
+  });
+
+  it('escapes the token rather than injecting raw markup', async () => {
+    const original = env.GOOGLE_SITE_VERIFICATION;
+    (env as { GOOGLE_SITE_VERIFICATION: string }).GOOGLE_SITE_VERIFICATION = '"><script>alert(1)</script>';
+    try {
+      const { html } = await renderShell(prisma, '/', SHELL);
+      expect(html).not.toContain('<script>alert(1)</script>');
+    } finally {
+      (env as { GOOGLE_SITE_VERIFICATION: string }).GOOGLE_SITE_VERIFICATION = original;
+    }
   });
 });
