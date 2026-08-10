@@ -101,7 +101,7 @@ describe('crawler shell', () => {
     // Policy text contains markdown and angle-bracket-ish characters; none of
     // it should become live markup beyond the tags we emit ourselves -- the
     // inline-styled wrapper div, and the elements the content builders use.
-    const allowed = body.replace(/<\/?(div|p|h1|h2|ul|li|a|strong)\b[^>]*>/g, '');
+    const allowed = body.replace(/<\/?(main|section|nav|div|p|h1|h2|ul|li|a|strong)\b[^>]*>/g, '');
     expect(allowed).not.toMatch(/<script/i);
     expect(allowed).not.toMatch(/<[a-z]+\s/i);
   });
@@ -213,6 +213,35 @@ describe('search engine verification', () => {
       expect(html).not.toContain('<script>alert(1)</script>');
     } finally {
       (env as { GOOGLE_SITE_VERIFICATION: string }).GOOGLE_SITE_VERIFICATION = original;
+    }
+  });
+});
+
+describe('document structure', () => {
+  it('wraps injected content in a main landmark', async () => {
+    // Without a landmark, the version of the page that crawlers and screen
+    // readers actually receive is an unstructured pile of text.
+    const { html } = await renderShell(prisma, '/', SHELL);
+    expect(html).toContain('<main');
+    expect(html).toContain('</main>');
+  });
+
+  it('labels the category list as navigation', async () => {
+    const { html } = await renderShell(prisma, '/', SHELL);
+    expect(html).toContain('<nav aria-label="Popular categories">');
+  });
+
+  it('gives each category its own section on /categories', async () => {
+    const { html } = await renderShell(prisma, '/categories', SHELL);
+    expect(html).toContain('<section><h2>');
+  });
+
+  it('has exactly one h1 per described page', async () => {
+    // More than one h1 leaves the page with no single subject; none leaves it
+    // with no subject at all.
+    for (const route of ['/', '/categories', '/privacy', '/about']) {
+      const { html } = await renderShell(prisma, route, SHELL);
+      expect((html.match(/<h1[\s>]/g) ?? []).length, `${route} should have one h1`).toBe(1);
     }
   });
 });

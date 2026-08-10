@@ -147,8 +147,10 @@ async function homeContent(prisma: PrismaClient): Promise<ShellContent> {
     description: DEFAULT_DESCRIPTION,
     body: `<h1>Find someone to learn from</h1>
 <p>${esc(DEFAULT_DESCRIPTION)}</p>
+<nav aria-label="Popular categories">
 <h2>Popular categories</h2>
 <ul>${list}</ul>
+</nav>
 <p><a href="/categories">See every category</a> · <a href="/requests/new">Post what you want to learn</a></p>`,
   };
 }
@@ -165,7 +167,9 @@ async function categoriesContent(prisma: PrismaClient): Promise<ShellContent> {
 
   const totalSubjects = categories.reduce((n, c) => n + c.subjects.length, 0);
   const sections = categories
-    .map((c) => `<h2>${esc(c.name)}</h2>\n<p>${c.subjects.map((s) => esc(s.name)).join(', ')}</p>`)
+    // One <section> per category, each owning its heading, so the page has a
+    // real outline rather than a flat run of h2s a reader must infer from.
+    .map((c) => `<section><h2>${esc(c.name)}</h2>\n<p>${c.subjects.map((s) => esc(s.name)).join(', ')}</p></section>`)
     .join('\n');
 
   return {
@@ -184,7 +188,10 @@ function policyContent(path: string): ShellContent | null {
   return {
     title: `${doc.title} | ${SITE_NAME}`,
     description: `${doc.title} for ${SITE_NAME}.`,
-    body: `${paragraphs(text)}`,
+    // policyToText strips markdown headings, so without this the document's
+    // own title arrived as an ordinary paragraph and the page had no heading
+    // at all -- a wall of <p> with nothing naming what it is.
+    body: `<h1>${esc(doc.title)}</h1>\n${paragraphs(text)}`,
   };
 }
 
@@ -435,9 +442,14 @@ export async function renderShell(
     + "font-family:system-ui,-apple-system,'Segoe UI',sans-serif;"
     + 'line-height:1.6;color:#1a1a1a;';
 
+  // <main>, not <div>. This markup IS the page for anything that does not run
+  // JavaScript -- most AI crawlers, and Google unreliably -- and a document
+  // with no landmark has no structure for them to read. The React app already
+  // renders header/nav/main/footer correctly; this is the half that crawlers
+  // and screen readers actually receive, and it was a bare div.
   out = out.replace(
     '<div id="root"></div>',
-    `<div id="root"><div style="${wrapper}">${content.body}</div></div>`,
+    `<div id="root"><main style="${wrapper}">${content.body}</main></div>`,
   );
 
   return { html: out, status: content.status ?? 200 };
