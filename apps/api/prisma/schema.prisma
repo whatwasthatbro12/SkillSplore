@@ -112,7 +112,10 @@ enum ConversationContext {
 model User {
   id              Int        @id @default(autoincrement())
   email           String     @unique
-  passwordHash    String
+  /// Null for an account that only ever signed in through Google or another
+  /// provider. Such a person has no password here to steal, and the login
+  /// route must say so plainly rather than reporting a wrong password.
+  passwordHash    String?
   displayName     String
   bio             String?
   avatarKey       String?
@@ -139,6 +142,7 @@ model User {
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 
+  oauthAccounts            OAuthAccount[]
   tutorProfile             TutorProfile?
   requests                 TutoringRequest[]
   savedTutors              SavedTutor[]
@@ -751,6 +755,34 @@ model LegalDocumentVersion {
 }
 
 // Append-only. One row per user per version accepted.
+/// A sign-in identity held with an external provider.
+///
+/// Separate from User because one person may link several -- Google today,
+/// Apple later -- and because the provider's own id, not the email address, is
+/// the stable key. Email addresses at a provider can be changed or reassigned;
+/// the subject id cannot.
+model OAuthAccount {
+  id                Int           @id @default(autoincrement())
+  userId            Int
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          OAuthProvider
+  /// The provider's immutable subject identifier (Google's `sub` claim).
+  providerAccountId String
+  /// The address the provider reported at the time of linking. Recorded for
+  /// support and audit only -- never used to find or match an account, because
+  /// matching on a mutable address is how account-takeover bugs happen.
+  email             String?
+  createdAt         DateTime      @default(now())
+  lastLoginAt       DateTime      @default(now())
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+enum OAuthProvider {
+  GOOGLE
+}
+
 model UserLegalAcceptance {
   id         Int      @id @default(autoincrement())
   userId     Int

@@ -32,6 +32,11 @@ const schema = z.object({
   // and notified when someone submits feedback. Declared here as well as read
   // from process.env in the boot script so the running server can use it.
   ADMIN_EMAILS: z.string().default(''),
+  // Google sign-in. Both blank disables the feature entirely: the button is
+  // not rendered and the routes refuse, so a half-configured deployment shows
+  // nothing rather than a button that dead-ends.
+  GOOGLE_CLIENT_ID: z.string().default(''),
+  GOOGLE_CLIENT_SECRET: z.string().default(''),
 
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
 

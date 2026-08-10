@@ -1,15 +1,19 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { api, ApiError } from '../lib/api.js';
 import { useAuth } from '../lib/auth.js';
 import type { SelfUser } from '../lib/types.js';
 import { Alert, Button, Card, Field, Input } from '../components/ui.js';
+import { GoogleButton, OAUTH_ERRORS } from '../components/GoogleButton.js';
 
 export function Login() {
   const { setUser, config } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: string } | null)?.from ?? '/dashboard';
+  // The Google callback redirects here with ?error=... when it cannot finish.
+  const [params] = useSearchParams();
+  const oauthError = OAUTH_ERRORS[params.get('error') ?? ''] ?? null;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -45,6 +49,8 @@ export function Login() {
         <div className="card-body">
           <h1>Log in</h1>
           {error && <Alert type="error">{error}</Alert>}
+          {oauthError && <Alert type="error">{oauthError}</Alert>}
+          <GoogleButton label="Continue with Google" />
           <form onSubmit={submit}>
             <Field label="Email">
               <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />

@@ -90,6 +90,14 @@ services:
       # vanishes on redeploy and the property quietly becomes unverified.
       - key: GOOGLE_SITE_VERIFICATION
         sync: false
+      # Sign in with Google. Set in the dashboard, never here -- the secret
+      # would otherwise sit in a public repository. Blank disables the feature
+      # and the button disappears, so a half-configured deployment shows
+      # nothing rather than a button that dead-ends.
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
       - key: FORCE_SECURE_COOKIES
         value: 1
       - key: STORAGE_DRIVER

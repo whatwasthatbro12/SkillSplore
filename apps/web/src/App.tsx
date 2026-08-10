@@ -35,6 +35,7 @@ import { AdminTaxonomy } from './pages/admin/AdminTaxonomy.js';
 import { AdminSubjectSuggestions } from './pages/admin/AdminSubjectSuggestions.js';
 import { AdminFeedback } from './pages/admin/AdminFeedback.js';
 import { AdminLegal } from './pages/admin/AdminLegal.js';
+import { Welcome } from './pages/Welcome.js';
 import { AdminPrivacyRequests } from './pages/admin/AdminPrivacyRequests.js';
 import { AdminAudit } from './pages/admin/AdminAudit.js';
 import { PolicyPage } from './pages/legal/PolicyPage.js';
@@ -72,6 +73,7 @@ export function App() {
           <Route path="/tutors/:id" element={<TutorProfile />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/welcome" element={<RequireAuth><Welcome /></RequireAuth>} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />

@@ -25,7 +25,7 @@ function link(pathname: string, token: string): string {
  * of which version, which is recoverable by re-prompting, unlike a failed
  * signup.
  */
-async function recordRegistrationAcceptances(
+export async function recordRegistrationAcceptances(
   userId: number,
   ipAddress: string | null,
   userAgent: string | null,
@@ -196,6 +196,14 @@ export async function authenticate(email: string, password: string): Promise<Use
   // Per-account lockout: reject without even checking the password while
   // locked, and without extending the lock further on repeated attempts.
   if (user.lockedUntil && user.lockedUntil > new Date()) throw invalid;
+
+  // An account created through Google has no password here. Reusing the
+  // generic "Incorrect email or password" would send that person round in
+  // circles resetting a password they never had -- and there is no secret to
+  // protect, since the sign-in button is on the page already.
+  if (user.passwordHash === null) {
+    throw unauthorized('That account signs in with Google. Use the Google button instead.');
+  }
 
   const ok = await verifyPassword(password, user.passwordHash);
   if (!ok) {
