@@ -14,6 +14,21 @@ function getTransport(): Transporter {
       port: env.SMTP_PORT,
       secure: env.SMTP_SECURE,
       auth: env.SMTP_USER ? { user: env.SMTP_USER, pass: env.SMTP_PASS } : undefined,
+
+      // Without these, a mail server that accepts the TCP connection but never
+      // answers leaves the send waiting on the operating system's timeout.
+      // Requests that send mail -- registration, password reset -- are awaited
+      // inline so the interface can honestly report whether the message went
+      // out, which means an unbounded wait becomes an unbounded HTTP request.
+      // Observed in production: the site answered in 0.3s while
+      // /request-password-reset hung past two minutes.
+      //
+      // A bounded failure is far more useful than a slow success. If the
+      // provider cannot be reached in ten seconds it is not going to be, and
+      // the caller would rather be told than left hanging.
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 20_000,
     });
   }
   return transporter;
