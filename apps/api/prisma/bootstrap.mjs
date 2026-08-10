@@ -17,6 +17,14 @@ function run(cmd, args) {
   }
 }
 
+/** Runs a step whose failure must not take the site down. */
+function runAllowFailure(cmd, args) {
+  const result = spawnSync(cmd, args, { stdio: 'inherit', shell: process.platform === 'win32' });
+  if (result.status !== 0) {
+    console.error(`[bootstrap] step declined or failed (continuing): ${cmd} ${args.join(' ')}`);
+  }
+}
+
 console.log('[bootstrap] applying database migrations...');
 run('npx', ['prisma', 'migrate', 'deploy', '--schema', 'apps/api/prisma/schema.prisma']);
 
@@ -52,6 +60,21 @@ run('npx', ['tsx', 'apps/api/prisma/syncLegal.ts']);
 // only: it never creates an account, never revokes, and never fails the boot.
 console.log('[bootstrap] syncing administrators...');
 run('npx', ['tsx', 'apps/api/prisma/syncAdmins.ts']);
+
+// One-shot demo cleanup, for hosts with no shell to run the script from.
+//
+// Deletes only accounts on @demo.skillsplore.local -- an unroutable domain no
+// real person can hold -- so this cannot reach a genuine account no matter how
+// the flag is set. Idempotent: once the demo accounts are gone it finds
+// nothing and does nothing, so leaving the variable set is harmless.
+//
+// The script refuses to run while every administrator is a demo account, which
+// is what stops this deleting the only way into /admin. That refusal must not
+// take the site down, hence runAllowFailure.
+if (/^(1|true|yes)$/i.test(process.env.REMOVE_DEMO_DATA ?? '')) {
+  console.log('[bootstrap] REMOVE_DEMO_DATA is set — removing demo accounts...');
+  runAllowFailure('npx', ['tsx', 'apps/api/prisma/removeDemoData.ts', '--commit']);
+}
 
 console.log('[bootstrap] starting server...');
 await import('../dist/index.js');

@@ -78,6 +78,11 @@ services:
       # here creates an account or revokes anyone.
       - key: ADMIN_EMAILS
         value: admin@skillsplore.org
+      # Deliberately NOT set here. Deleting the demo accounts is a one-off,
+      # irreversible action against live data, so it belongs in the dashboard
+      # where a person chooses it -- not in a file where a redeploy performs
+      # it. Set REMOVE_DEMO_DATA=1 there when ready; it is safe to leave set
+      # afterwards, and safe to remove.
       - key: FORCE_SECURE_COOKIES
         value: 1
       - key: STORAGE_DRIVER
