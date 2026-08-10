@@ -28,6 +28,10 @@ const schema = z.object({
   // uploaded verification file disappears on the next redeploy and the
   // property silently loses its verified status.
   GOOGLE_SITE_VERIFICATION: z.string().default(''),
+  // Comma-separated addresses granted ADMIN on boot (see prisma/syncAdmins.ts),
+  // and notified when someone submits feedback. Declared here as well as read
+  // from process.env in the boot script so the running server can use it.
+  ADMIN_EMAILS: z.string().default(''),
 
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
 
