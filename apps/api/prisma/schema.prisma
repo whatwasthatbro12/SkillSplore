@@ -365,6 +365,7 @@ model TutorProfile {
   availability   AvailabilitySlot[]
   qualifications Qualification[]
   verifications  Verification[]
+  commissions    Commission[]
   reviews        Review[]
   responses      RequestResponse[]
   savedBy        SavedTutor[]
@@ -594,9 +595,70 @@ model Engagement {
   cancelledAt    DateTime?
 
   review         Review?
+  commission     Commission?
 
   @@index([studentId])
   @@index([tutorProfileId])
+}
+
+/// Commission owed to SkillSplore for an introduction that became a lesson.
+///
+/// The revenue model is "we earn only when a tutor earns". SkillSplore does not
+/// process lesson payments -- those are arranged directly between two people
+/// and are invisible to us -- so there is no way to observe money changing
+/// hands. What CAN be observed is that an introduction made here turned into a
+/// lesson that both parties agree happened: an Engagement reaching COMPLETED.
+/// That is the closest honest proxy, and it is what this accrues on.
+///
+/// This is a LEDGER, not a charge. Nothing here moves money. Rows accumulate so
+/// that when a payment processor is connected there is an accurate history to
+/// invoice from, and so a tutor can see what is accruing rather than meeting it
+/// as a surprise.
+model Commission {
+  id             Int              @id @default(autoincrement())
+  /// One commission per engagement, enforced by the unique constraint below.
+  /// Completing an already-completed engagement must not accrue twice.
+  engagementId   Int              @unique
+  engagement     Engagement       @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+  tutorProfileId Int
+  tutorProfile   TutorProfile     @relation(fields: [tutorProfileId], references: [id], onDelete: Cascade)
+
+  /// What the tutor says they were paid for this lesson, if they said. Null is
+  /// normal and not a failure: declaring is optional, because a platform that
+  /// cannot verify the number should not pretend the field is authoritative.
+  basisCents     Int?
+  currency       String           @default("NZD")
+
+  /// The rate and flat component IN FORCE WHEN THIS ACCRUED, copied rather
+  /// than referenced. Changing the price list later must not silently restate
+  /// what a tutor already owes.
+  rateBps        Int
+  flatCents      Int
+  /// flatCents + (basisCents * rateBps / 10000), computed at accrual.
+  amountCents    Int
+
+  status         CommissionStatus @default(PENDING)
+  /// Set when the row is deliberately not collected -- inside a tutor's free
+  /// allowance, or written off. Recorded rather than deleted so the history
+  /// still shows the introduction happened.
+  waivedReason   String?
+
+  createdAt      DateTime         @default(now())
+  invoicedAt     DateTime?
+  paidAt         DateTime?
+
+  @@index([tutorProfileId, status])
+  @@index([status])
+}
+
+enum CommissionStatus {
+  /// Accrued and owed, but nothing has been sent to the tutor yet.
+  PENDING
+  /// Included on an invoice. No charging exists yet; this is for when it does.
+  INVOICED
+  PAID
+  /// Deliberately not collected. Free allowance, goodwill, or a dispute.
+  WAIVED
 }
 
 model Review {

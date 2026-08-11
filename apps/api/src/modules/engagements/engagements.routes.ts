@@ -7,6 +7,7 @@ import { prisma } from '../../lib/prisma.js';
 import { badRequest, forbidden, notFound } from '../../lib/errors.js';
 import { publicUser } from '../../lib/serializers.js';
 import { notify } from '../../lib/notify.js';
+import { accrueCommission } from '../../lib/payments/commission.js';
 
 export const engagementsRouter = Router();
 
@@ -115,14 +116,31 @@ async function myEngagement(userId: number, id: number) {
 engagementsRouter.post(
   '/:id/complete',
   requireAuth,
+  validate({
+    body: z.object({
+      // What the tutor was actually paid, if they choose to say. Optional
+      // because SkillSplore cannot verify it and should not present an
+      // unverifiable number as fact. Commission still works without it -- the
+      // flat component covers that case.
+      paidCents: z.number().int().min(0).max(100_000_000).nullable().optional(),
+    }),
+  }),
   asyncHandler(async (req, res) => {
     const e = await myEngagement(req.user!.id, Number(req.params.id));
     if (e.status === 'CANCELLED') throw badRequest('A cancelled engagement cannot be completed.');
+
     const updated = await prisma.engagement.update({
       where: { id: e.id },
       data: { status: 'COMPLETED', completedAt: new Date() },
       include: engagementInclude,
     });
+
+    // Deliberately after the status change and outside its transaction. If the
+    // ledger write fails, the lesson is still completed and the learner can
+    // still leave a review; billing is our problem, not theirs. accrueCommission
+    // swallows its own failures and logs them for the same reason.
+    await accrueCommission(prisma, updated, { basisCents: req.body?.paidCents ?? null });
+
     res.json({ engagement: serialize(updated, req.user!.id) });
   }),
 );

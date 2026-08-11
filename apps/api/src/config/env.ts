@@ -35,6 +35,23 @@ const schema = z.object({
   // Google sign-in. Both blank disables the feature entirely: the button is
   // not rendered and the routes refuse, so a half-configured deployment shows
   // nothing rather than a button that dead-ends.
+  // Commission on introductions that became lessons. The revenue model is "we
+  // earn only when a tutor earns", and a completed engagement is the closest
+  // thing to that which the platform can actually observe -- lesson payments
+  // happen off-platform and are invisible here.
+  //
+  // Accrual is a ledger entry, never a charge. COMMISSION_ENABLED controls
+  // whether rows accrue at all; nothing in the codebase moves money.
+  COMMISSION_ENABLED: bool(false),
+  // Basis points applied to a declared lesson value. 500 = 5%. Ignored when a
+  // tutor declares nothing, which is expected and allowed.
+  COMMISSION_RATE_BPS: z.coerce.number().int().min(0).max(10000).default(0),
+  // Charged per completed engagement regardless of declared value. Lets the
+  // model work at all before anyone declares anything.
+  COMMISSION_FLAT_CENTS: z.coerce.number().int().min(0).default(0),
+  // Completed engagements per tutor that accrue nothing. Early tutors should
+  // not be billed for the period when the platform was proving itself to them.
+  COMMISSION_FREE_ENGAGEMENTS: z.coerce.number().int().min(0).default(10),
   GOOGLE_CLIENT_ID: z.string().default(''),
   GOOGLE_CLIENT_SECRET: z.string().default(''),
 
