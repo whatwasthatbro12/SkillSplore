@@ -102,3 +102,57 @@ gates.
 - `docs/SUBPROCESSORS.md` — the provider must be recorded there
 - `docs/PRIVACY_IMPACT_ASSESSMENT.md` — risk 10
 - `apps/api/src/lib/mailer.ts`
+
+## Port 465 does not work on Render
+
+Confirmed on the live service, not inferred. With `SMTP_PORT=465` a password
+reset hung past two minutes, and after connection timeouts were added it failed
+at exactly the 10-second mark every time — while the site itself answered in
+0.3s. The connection to `smtp.resend.com:465` never completed.
+
+Render blocks outbound 465. Resend publishes alternates for this reason:
+
+| Port | `SMTP_SECURE` | Notes |
+|---|---|---|
+| 2465 | `1` | TLS. **This is what the live deployment uses.** |
+| 2587 | `0` | STARTTLS. Fall back here if 2465 is ever blocked too. |
+| 465 / 587 | — | Standard ports. Blocked on Render. |
+
+Verified working configuration:
+
+```
+SMTP_HOST    smtp.resend.com
+SMTP_PORT    2465
+SMTP_SECURE  1
+SMTP_USER    resend
+SMTP_PASS    <Resend API key, set in the dashboard only>
+MAIL_FROM    SkillSplore <no-reply@skillsplore.org>
+```
+
+Resend's dashboard confirmed `Delivered` for a real password-reset message.
+
+## Why Google Workspace SMTP is not an option
+
+`admin@skillsplore.org` is a Google Workspace mailbox, so Workspace SMTP looks
+like the obvious choice. It is not available: Google removed app passwords, and
+the admin console states plainly that from 14 March 2025 Workspace accounts no
+longer support signing in to third-party apps with a username and password.
+OAuth2 is the only Google-native route, which means a Cloud project, a service
+account with domain-wide delegation, and a rewrite of the mailer. Resend costs
+one signup.
+
+## DNS
+
+Both providers coexist. Resend's SPF sits on the `send` subdomain and does not
+collide with the root SPF that authorises Google:
+
+| Name | Type | Purpose |
+|---|---|---|
+| `@` | TXT | `v=spf1 include:_spf.google.com ~all` — Workspace sending |
+| `send` | TXT | `v=spf1 include:amazonses.com ~all` — Resend |
+| `send` | MX | Resend bounce handling |
+| `resend._domainkey` | TXT | Resend DKIM |
+| `google._domainkey` | TXT | Workspace DKIM |
+
+Never put a second SPF record on the root. Two SPF records on one name is a
+permanent error that breaks both.
