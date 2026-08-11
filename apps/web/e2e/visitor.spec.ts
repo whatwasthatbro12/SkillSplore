@@ -13,7 +13,13 @@ test('homepage states what SkillSplore is without inventing activity', async ({ 
   await page.goto('/');
 
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Post what you want to learn');
-  await expect(page.getByText('Launching soon in New Zealand and Australia')).toBeVisible();
+  // Says where each kind of lesson is available, which are different answers.
+  // In-person needs both people in one place; online needs neither, and the
+  // old "New Zealand and Australia" turned away tutors who could teach from
+  // anywhere.
+  await expect(
+    page.getByText('In person across New Zealand and Australia · Online from anywhere'),
+  ).toBeVisible();
 
   // Both routes into the product are meant to be equally reachable.
   await expect(page.getByRole('link', { name: 'Post what you want to learn' })).toBeVisible();

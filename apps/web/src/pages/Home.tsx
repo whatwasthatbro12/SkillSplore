@@ -44,7 +44,12 @@ export function Home() {
   return (
     <div>
       <section className="hero">
-        <div className="eyebrow">Launching soon in New Zealand and Australia</div>
+        {/* Two different statements, because they are two different things.
+            In-person lessons need both people in the same place, so those are
+            NZ and Australia. Teaching online needs neither, so it is open to
+            anyone anywhere -- and saying only "New Zealand and Australia"
+            turned away tutors who could have taught from Manila or Manchester. */}
+        <div className="eyebrow">In person across New Zealand and Australia · Online from anywhere</div>
         <h1>Post what you want to learn. Find the <span className="gradient-text">right</span> person.</h1>
         <p className="sub">
           Search by subject or skill, compare profiles, or post a request and hear from people who can help.

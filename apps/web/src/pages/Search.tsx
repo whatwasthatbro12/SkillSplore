@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { COUNTRY_OPTIONS } from '../lib/countries.js';
 import { useSearchParams } from 'react-router-dom';
 import { useApi } from '../lib/useApi.js';
 import type { PageMeta, SearchResult } from '../lib/types.js';
@@ -93,8 +94,7 @@ export function Search() {
           <Field label="Country">
             <Select value={filters.country} onChange={(e) => set({ country: e.target.value })}>
               <option value="">Any country</option>
-              <option value="New Zealand">New Zealand</option>
-              <option value="Australia">Australia</option>
+              {COUNTRY_OPTIONS.map((c) => <option key={c} value={c}>{c}</option>)}
             </Select>
           </Field>
           <Field label="City"><Input value={filters.city} onChange={(e) => set({ city: e.target.value })} placeholder="e.g. Auckland" /></Field>

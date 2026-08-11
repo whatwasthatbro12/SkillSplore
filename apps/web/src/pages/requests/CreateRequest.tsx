@@ -6,6 +6,7 @@ import { useAuth } from '../../lib/auth.js';
 import { useToast } from '../../lib/toast.js';
 import { Alert, Button, Card, Field, Input, Select, Textarea } from '../../components/ui.js';
 import { SuggestSubjectModal } from '../../components/SuggestSubjectModal.js';
+import { COUNTRY_OPTIONS } from '../../lib/countries.js';
 
 type LevelTrack = 'ACADEMIC' | 'PROFESSIONAL';
 interface Category { id: number; name: string; levelTracks: LevelTrack[]; subjects: Array<{ id: number; name: string }> }
@@ -141,7 +142,8 @@ export function CreateRequest() {
             <div className="grid grid-2">
               <Field label="Country">
                 <Select value={form.country} onChange={(e) => set({ country: e.target.value })}>
-                  <option value="">—</option><option>New Zealand</option><option>Australia</option>
+                  <option value="">—</option>
+                  {COUNTRY_OPTIONS.map((c) => <option key={c} value={c}>{c}</option>)}
                 </Select>
               </Field>
               <Field label="City"><Input value={form.city} onChange={(e) => set({ city: e.target.value })} /></Field>

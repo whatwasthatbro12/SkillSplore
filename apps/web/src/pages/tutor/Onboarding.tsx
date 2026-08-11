@@ -7,6 +7,7 @@ import type { Money } from '../../lib/types.js';
 import { Alert, Badge, Button, Card, Field, Input, Select, Spinner, StatusBadge, Textarea } from '../../components/ui.js';
 import { SuggestSubjectModal } from '../../components/SuggestSubjectModal.js';
 import { CREDENTIALS_SELF_DECLARED } from '../../lib/trustCopy.js';
+import { COUNTRY_OPTIONS } from '../../lib/countries.js';
 import { slotLabel } from '../../lib/format.js';
 
 interface OwnProfile {
@@ -145,7 +146,16 @@ function ProfileStep({ profile, onSaved }: { profile: OwnProfile; onSaved: () =>
       </div>
       {f.deliveryMode !== 'ONLINE' && (
         <div className="grid grid-2">
-          <Field label="Country"><Select value={f.country} onChange={(e) => set({ country: e.target.value })}><option value="">—</option><option>New Zealand</option><option>Australia</option></Select></Field>
+          <Field label="Country">
+          <Select value={f.country} onChange={(e) => set({ country: e.target.value })} required>
+            <option value="">Select your country</option>
+            {COUNTRY_OPTIONS.map((c) => <option key={c} value={c}>{c}</option>)}
+          </Select>
+          <p className="hint">
+            Shown on your profile. Teaching online is open from anywhere — learners just need to
+            know where you are, so they can judge time zones before they message you.
+          </p>
+        </Field>
           <Field label="City"><Input value={f.city} onChange={(e) => set({ city: e.target.value })} /></Field>
           <Field label="Location note"><Input value={f.locationNote} onChange={(e) => set({ locationNote: e.target.value })} placeholder="e.g. Central suburbs" /></Field>
           <Field label="Travel radius (km)"><Input type="number" min={0} value={f.travelRadiusKm} onChange={(e) => set({ travelRadiusKm: e.target.value })} /></Field>

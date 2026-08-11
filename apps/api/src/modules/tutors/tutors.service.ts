@@ -211,8 +211,19 @@ export function assertSubmittable(p: FullProfile): void {
   // unsubmittable the next time they edited it -- punishing them for a
   // limitation that was ours.
   if (p.hourlyRateCents == null) problems.push('Set your default hourly rate.');
-  if ((p.deliveryMode === 'IN_PERSON' || p.deliveryMode === 'BOTH') && (!p.country || !p.city)) {
-    problems.push('Add your country and city for in-person lessons.');
+  // Country is required of everyone, including online-only tutors anywhere in
+  // the world. Teaching online is deliberately unrestricted by location -- but
+  // a learner deciding whether to message someone needs to know which country
+  // they are in, because that is what decides whether a lesson time is
+  // plausible for both of them. A profile with no country reads as evasive
+  // rather than global.
+  if (!p.country) problems.push('Add the country you are in.');
+
+  // City is only needed for in-person, where a learner has to physically get
+  // there. Asking an online tutor for their city collects a more precise
+  // location than the service has any use for.
+  if ((p.deliveryMode === 'IN_PERSON' || p.deliveryMode === 'BOTH') && !p.city) {
+    problems.push('Add your city for in-person lessons.');
   }
   if (problems.length > 0) {
     throw badRequest('Your profile is not ready to submit yet.', { problems });
