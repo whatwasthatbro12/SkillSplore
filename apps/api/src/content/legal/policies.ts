@@ -360,8 +360,10 @@ review dates, is maintained in \`docs/SUBPROCESSORS.md\` and mirrored into the
 
 | Provider | Service | Data handled | Location | Status |
 |---|---|---|---|---|
-| Render | Application hosting and managed PostgreSQL database | All application data | To be confirmed against the deployed region | In use |
-| *(SMTP provider)* | Transactional email delivery — verification, password reset, notifications | Email address, message content of the notification | Not yet selected for production | **Not yet configured** |
+| Render | Application hosting and managed PostgreSQL database | All application data | United States (Oregon) | In use |
+| Resend | Transactional email delivery — verification, password reset, notifications, feedback alerts | Recipient email address and the content of the message sent | United States (N. Virginia) | In use |
+| Cloudflare | Authoritative DNS for skillsplore.org | DNS queries only. Records are not proxied, so Cloudflare does not see page requests or their contents | Global | In use |
+| Google Workspace | The admin@skillsplore.org mailbox, which receives support, privacy and security correspondence | Whatever a person chooses to put in an email to us | United States | In use |
 | *(Payment processor)* | Taking the one-off profile activation fee | Amount, currency, payment status, an opaque reference. **Never card numbers** — those are entered on the processor's own checkout page | Not yet selected | **Not yet configured; no fee is currently charged** |
 | *(Object storage)* | Uploaded files: profile photographs, attachments | Uploaded file content | Local disk in current deployment | S3-compatible storage not yet configured |
 

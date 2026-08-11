@@ -15,15 +15,27 @@ failure.
 
 | Provider | Service | Data categories | Country | Contract | Security review | Retention |
 |---|---|---|---|---|---|---|
-| Render | Application hosting + managed PostgreSQL | All application data | **To confirm** against the deployed region | Standard terms accepted at signup — **not separately reviewed** | Not done | Data deleted on service teardown; backup retention per Render's policy — **to confirm** |
+| Render | Application hosting + managed PostgreSQL | All application data | United States (Oregon) — confirmed in the service dashboard | Standard terms accepted at signup — **not separately reviewed** | Not done | Data deleted on service teardown; backup retention per Render's policy — **to confirm** |
+| Resend | Transactional email — verification, password reset, notifications, feedback alerts | Recipient address and the content of the message | United States (N. Virginia, us-east-1) — shown on the domain page | Standard terms accepted at signup — **not separately reviewed** | Not done | Message content and delivery logs retained per Resend's policy — **to confirm** |
+| Cloudflare | Authoritative DNS for skillsplore.org | DNS queries only. Records are DNS-only rather than proxied, so Cloudflare does not terminate TLS and does not see request contents | Global anycast | Standard terms accepted at signup — **not separately reviewed** | Not done | No application data held |
+| Google Workspace | The admin@skillsplore.org mailbox — support, privacy and security correspondence | Whatever a person chooses to send us by email | United States | Standard terms accepted at signup — **not separately reviewed** | Not done | Mailbox retention under our own control |
 
 That is the complete list. One provider.
+
+> **Changed 11 August 2026.** Resend was brought into service for transactional
+> email, and Cloudflare and Google Workspace were added to the register — they
+> were already in use but had never been listed. The Privacy Policy states that
+> no provider appears here unless it is actually in use; the reverse obligation
+> is the one that was being missed.
+>
+> Nothing here has had a security review. That is recorded honestly rather than
+> left blank, because an unreviewed provider that looks reviewed is worse than
+> one plainly marked as not.
 
 ## Not yet configured
 
 | Provider | Service | Status |
 |---|---|---|
-| *(none selected)* | Transactional email — verification, password reset, notifications | `SMTP_HOST` defaults to `localhost:1025` (a local mail-capture tool used in development). **No production email provider has been chosen.** Until one is, verification emails will not be delivered in production. |
 | *(none selected)* | Object storage for uploads | `STORAGE_DRIVER=local` writes to the container filesystem. On Render's free tier this is **not persistent** — uploads are lost on redeploy. See `KNOWN_LIMITATIONS.md`. S3-compatible storage is supported in code but not configured. |
 
 Both need resolving before launch, and both add a subprocessor row when chosen.
