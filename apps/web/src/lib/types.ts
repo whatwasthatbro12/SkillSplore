@@ -32,6 +32,14 @@ export interface AppConfig {
   showDemoBanner: boolean;
   demoLoginEnabled: boolean;
   demoBannerText: string;
+  /** Present so the interface only asks a tutor about income when the number
+   *  is actually used to calculate something. */
+  commission: {
+    enabled: boolean;
+    ratePercent: number;
+    flatCents: number;
+    freeEngagements: number;
+  };
 }
 
 export interface SearchResult {

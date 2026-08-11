@@ -45,7 +45,8 @@ const schema = z.object({
   COMMISSION_ENABLED: bool(false),
   // Basis points applied to a declared lesson value. 500 = 5%. Ignored when a
   // tutor declares nothing, which is expected and allowed.
-  COMMISSION_RATE_BPS: z.coerce.number().int().min(0).max(10000).default(0),
+  // 500 = 5%, the agreed rate. Still inert until COMMISSION_ENABLED is on.
+  COMMISSION_RATE_BPS: z.coerce.number().int().min(0).max(10000).default(500),
   // Charged per completed engagement regardless of declared value. Lets the
   // model work at all before anyone declares anything.
   COMMISSION_FLAT_CENTS: z.coerce.number().int().min(0).default(0),

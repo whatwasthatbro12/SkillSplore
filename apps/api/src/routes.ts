@@ -31,6 +31,15 @@ apiRouter.get('/config', (_req, res) => {
     showDemoBanner: env.showDemoBanner,
     demoLoginEnabled: env.demoLoginEnabled,
     demoBannerText: 'Demonstration environment — data may be reset.',
+    // Lets the interface ask a tutor what they were paid only when that
+    // number is actually used. Asking when commission is off would be
+    // collecting income data for no stated purpose.
+    commission: {
+      enabled: env.COMMISSION_ENABLED,
+      ratePercent: env.COMMISSION_RATE_BPS / 100,
+      flatCents: env.COMMISSION_FLAT_CENTS,
+      freeEngagements: env.COMMISSION_FREE_ENGAGEMENTS,
+    },
   });
 });
 
